@@ -513,113 +513,113 @@ variable "nat_subnet_tags" {
 # eks Subnets
 ################################################################################
 
-variable "eks_subnets" {
-  description = "A list of database subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "eks_subnet_assign_ipv6_address_on_creation" {
-  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "eks_subnet_enable_dns64" {
-  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "eks_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "eks_subnet_enable_resource_name_dns_a_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "eks_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 database subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
-  type        = list(string)
-  default     = []
-}
-
-variable "eks_subnet_ipv6_native" {
-  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "eks_subnet_private_dns_hostname_type_on_launch" {
-  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
-  type        = string
-  default     = null
-}
-
-variable "eks_subnet_names" {
-  description = "Explicit values to use in the Name tag on database subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "eks_subnet_suffix" {
-  description = "Suffix to append to database subnets name"
-  type        = string
-  default     = "db"
-}
-
-variable "create_eks_subnet_route_table" {
-  description = "Controls if separate route table for database should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_eks_internet_gateway_route" {
-  description = "Controls if an internet gateway route for public database access should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_eks_nat_gateway_route" {
-  description = "Controls if a nat gateway route should be created to give internet access to the database subnets"
-  type        = bool
-  default     = false
-}
-
-variable "eks_route_table_tags" {
-  description = "Additional tags for the database route tables"
-  type        = map(string)
-  default     = {}
-}
-
-variable "eks_subnet_tags" {
-  description = "Additional tags for the database subnets"
-  type        = map(string)
-  default     = {}
-}
-
-variable "eks_database_subnet_group" {
-  description = "Controls if database subnet group should be created (n.b. database_subnets must also be set)"
-  type        = bool
-  default     = true
-}
-
-variable "eks_subnet_group_name" {
-  description = "Name of database subnet group"
-  type        = string
-  default     = null
-}
-
-variable "eks_subnet_group_tags" {
-  description = "Additional tags for the database subnet group"
-  type        = map(string)
-  default     = {}
-}
+#variable "eks_subnets" {
+#  description = "A list of database subnets inside the VPC"
+#  type        = list(string)
+#  default     = []
+#}
+#
+#variable "eks_subnet_assign_ipv6_address_on_creation" {
+#  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "eks_subnet_enable_dns64" {
+#  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
+#  type        = bool
+#  default     = true
+#}
+#
+#variable "eks_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
+#  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
+#  type        = bool
+#  default     = true
+#}
+#
+#variable "eks_subnet_enable_resource_name_dns_a_record_on_launch" {
+#  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "eks_subnet_ipv6_prefixes" {
+#  description = "Assigns IPv6 database subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+#  type        = list(string)
+#  default     = []
+#}
+#
+#variable "eks_subnet_ipv6_native" {
+#  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "eks_subnet_private_dns_hostname_type_on_launch" {
+#  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
+#  type        = string
+#  default     = null
+#}
+#
+#variable "eks_subnet_names" {
+#  description = "Explicit values to use in the Name tag on database subnets. If empty, Name tags are generated"
+#  type        = list(string)
+#  default     = []
+#}
+#
+#variable "eks_subnet_suffix" {
+#  description = "Suffix to append to database subnets name"
+#  type        = string
+#  default     = "db"
+#}
+#
+#variable "create_eks_subnet_route_table" {
+#  description = "Controls if separate route table for database should be created"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "create_eks_internet_gateway_route" {
+#  description = "Controls if an internet gateway route for public database access should be created"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "create_eks_nat_gateway_route" {
+#  description = "Controls if a nat gateway route should be created to give internet access to the database subnets"
+#  type        = bool
+#  default     = false
+#}
+#
+#variable "eks_route_table_tags" {
+#  description = "Additional tags for the database route tables"
+#  type        = map(string)
+#  default     = {}
+#}
+#
+#variable "eks_subnet_tags" {
+#  description = "Additional tags for the database subnets"
+#  type        = map(string)
+#  default     = {}
+#}
+#
+#variable "eks_database_subnet_group" {
+#  description = "Controls if database subnet group should be created (n.b. database_subnets must also be set)"
+#  type        = bool
+#  default     = true
+#}
+#
+#variable "eks_subnet_group_name" {
+#  description = "Name of database subnet group"
+#  type        = string
+#  default     = null
+#}
+#
+#variable "eks_subnet_group_tags" {
+#  description = "Additional tags for the database subnet group"
+#  type        = map(string)
+#  default     = {}
+#}
 
 
 
@@ -744,6 +744,11 @@ variable "create_alb_subnets" {
 ################################################################################
 # Database Subnets
 ################################################################################
+
+variable "create_db_subnet_route_table" {
+  type = bool
+  default = true
+}
 
 variable "database_subnets" {
   description = "A list of database subnets inside the VPC"
@@ -905,81 +910,10 @@ variable "database_acl_tags" {
   default     = {}
 }
 
+
 ################################################################################
-# Firewall Subnets
+# Public Subnets
 ################################################################################
-
-variable "firewall_subnets" {
-  description = "A list of firewall subnets inside the VPC"
-  type        = list(string)
-  default     = []
-}
-
-variable "firewall_subnet_assign_ipv6_address_on_creation" {
-  description = "Specify true to indicate that network interfaces created in the specified subnet should be assigned an IPv6 address. Default is `false`"
-  type        = bool
-  default     = false
-}
-
-variable "firewall_subnet_enable_dns64" {
-  description = "Indicates whether DNS queries made to the Amazon-provided DNS Resolver in this subnet should return synthetic IPv6 addresses for IPv4-only destinations. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "firewall_subnet_enable_resource_name_dns_aaaa_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS AAAA records. Default: `true`"
-  type        = bool
-  default     = true
-}
-
-variable "firewall_subnet_enable_resource_name_dns_a_record_on_launch" {
-  description = "Indicates whether to respond to DNS queries for instance hostnames with DNS A records. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "firewall_subnet_ipv6_prefixes" {
-  description = "Assigns IPv6 firewall subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
-  type        = list(string)
-  default     = []
-}
-
-variable "firewall_subnet_ipv6_native" {
-  description = "Indicates whether to create an IPv6-only subnet. Default: `false`"
-  type        = bool
-  default     = false
-}
-
-variable "firewall_subnet_private_dns_hostname_type_on_launch" {
-  description = "The type of hostnames to assign to instances in the subnet at launch. For IPv6-only subnets, an instance DNS name must be based on the instance ID. For dual-stack and IPv4-only subnets, you can specify whether DNS names use the instance IPv4 address or the instance ID. Valid values: `ip-name`, `resource-name`"
-  type        = string
-  default     = null
-}
-
-variable "firewall_subnet_names" {
-  description = "Explicit values to use in the Name tag on firewall subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "firewall_subnet_suffix" {
-  description = "Suffix to append to firewall subnets name"
-  type        = string
-  default     = "db"
-}
-
-variable "create_firewall_subnet_route_table" {
-  description = "Controls if separate route table for firewall should be created"
-  type        = bool
-  default     = true
-}
-
-variable "create_firewall_subnets" {
-  description = "Controls if separate route table for firewall should be created"
-  type        = bool
-  default     = true
-}
 
 variable "create_public_subnet_route_table" {
   description = "Controls if separate route table for firewall should be created"
@@ -992,47 +926,30 @@ variable "create_private_subnet_route_table" {
   default = true
 }
 
-variable "create_firewall_internet_gateway_route" {
-  description = "Controls if an internet gateway route for public firewall access should be created"
-  type        = bool
-  default     = false
+variable "private_routes" {
+  type = list(object({
+    destination_cidr_block = string
+    gateway_id = optional(string)
+    endpoint_id = optional(string)
+  }))
 }
 
-variable "create_firewall_nat_gateway_route" {
-  description = "Controls if a nat gateway route should be created to give internet access to the firewall subnets"
-  type        = bool
-  default     = false
+variable "public_routes" {
+  type = list(object({
+    destination_cidr_block = string
+    gateway_id = optional(string)
+    endpoint_id = optional(string)
+  }))
 }
 
-variable "firewall_route_table_tags" {
-  description = "Additional tags for the firewall route tables"
-  type        = map(string)
-  default     = {}
+variable "db_routes" {
+  type = list(object({
+    destination_cidr_block = string
+    gateway_id = optional(string)
+    endpoint_id = optional(string)
+  }))
 }
 
-variable "firewall_subnet_tags" {
-  description = "Additional tags for the firewall subnets"
-  type        = map(string)
-  default     = {}
-}
-
-variable "create_firewall_subnet_group" {
-  description = "Controls if firewall subnet group should be created (n.b. firewall_subnets must also be set)"
-  type        = bool
-  default     = true
-}
-
-variable "firewall_subnet_group_name" {
-  description = "Name of firewall subnet group"
-  type        = string
-  default     = null
-}
-
-variable "firewall_subnet_group_tags" {
-  description = "Additional tags for the firewall subnet group"
-  type        = map(string)
-  default     = {}
-}
 
 ################################################################################
 # Internet Gateway
@@ -1110,74 +1027,6 @@ variable "nat_gateway_tags" {
 
 variable "nat_eip_tags" {
   description = "Additional tags for the NAT EIP"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# Customer Gateways
-################################################################################
-
-variable "customer_gateways" {
-  description = "Maps of Customer Gateway's attributes (BGP ASN and Gateway's Internet-routable external IP address)"
-  type        = map(any)
-  default     = {}
-}
-
-variable "customer_gateway_tags" {
-  description = "Additional tags for the Customer Gateway"
-  type        = map(string)
-  default     = {}
-}
-
-################################################################################
-# VPN Gateway
-################################################################################
-
-variable "enable_vpn_gateway" {
-  description = "Should be true if you want to create a new VPN Gateway resource and attach it to the VPC"
-  type        = bool
-  default     = true
-}
-
-variable "vpn_gateway_id" {
-  description = "ID of VPN Gateway to attach to the VPC"
-  type        = string
-  default     = ""
-}
-
-variable "amazon_side_asn" {
-  description = "The Autonomous System Number (ASN) for the Amazon side of the gateway. By default the virtual private gateway is created with the current default Amazon ASN"
-  type        = string
-  default     = "64512"
-}
-
-variable "vpn_gateway_az" {
-  description = "The Availability Zone for the VPN Gateway"
-  type        = string
-  default     = null
-}
-
-variable "propagate_intra_route_tables_vgw" {
-  description = "Should be true if you want route table propagation"
-  type        = bool
-  default     = false
-}
-
-variable "propagate_private_route_tables_vgw" {
-  description = "Should be true if you want route table propagation"
-  type        = bool
-  default     = false
-}
-
-variable "propagate_public_route_tables_vgw" {
-  description = "Should be true if you want route table propagation"
-  type        = bool
-  default     = false
-}
-
-variable "vpn_gateway_tags" {
-  description = "Additional tags for the VPN gateway"
   type        = map(string)
   default     = {}
 }
@@ -1355,7 +1204,7 @@ variable "default_route_table_tags" {
 variable "enable_flow_log" {
   description = "Whether or not to enable VPC Flow Logs"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "vpc_flow_log_permissions_boundary" {
@@ -1464,80 +1313,6 @@ variable "flow_log_cloudwatch_log_group_kms_key_id" {
   default     = null
 }
 
-################################################################################
-# VPN Connection
-################################################################################
 
-variable "vpn_connections" {
-  type = map(any)
-  default = {}
-}
 
-variable "aws_vpn_connection_routes" {
-  type = map(any)
-  default = {}
-}
 
-################################################################################
-# Route Tables
-################################################################################
-variable "create_ingress_route_table" {
-  type = bool
-  default = true
-}
-
-variable "create_protected_route_table" {
-  type = bool
-  default = true
-}
-
-variable "create_db_subnet_route_table" {
-  type = bool
-  default = true
-}
-
-variable "firewall_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    gateway_id = optional(string)
-  }))
-}
-
-variable "ingress_igw_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    endpoint_id = string
-  }))
-}
-
-variable "protected_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    endpoint_id = optional(string)
-    gateway_id = optional(string)
-  }))
-}
-
-variable "private_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    gateway_id = optional(string)
-    endpoint_id = optional(string)
-  }))
-}
-
-variable "db_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    gateway_id = optional(string)
-    endpoint_id = optional(string)
-  }))
-}
-
-variable "aws_prod_account_number" {
-  type = string
-}
-
-variable "ram_subnet_arns" {
-  type = list(string)
-}

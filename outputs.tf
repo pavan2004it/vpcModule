@@ -134,37 +134,25 @@ output "alb_subnets_cidr_blocks" {
   value       = compact(aws_subnet.alb[*].cidr_block)
 }
 
-################################################################################
-# Firewall Subnets
-################################################################################
-
-output "firewall_subnet_id" {
-  description = "List of IDs of public subnets"
-  value       = aws_subnet.firewall[*].id
-}
-output "firewall_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of private subnets"
-  value       = compact(aws_subnet.firewall[*].cidr_block)
-}
 
 ################################################################################
 # eks Subnets
 ################################################################################
 
-output "eks_subnets" {
-  description = "List of IDs of public subnets"
-  value       = aws_subnet.eks[*].id
-}
-
-output "eks_subnet_arns" {
-  description = "List of ARNs of private subnets"
-  value       = aws_subnet.eks[*].arn
-}
-
-output "eks_subnets_cidr_blocks" {
-  description = "List of cidr_blocks of private subnets"
-  value       = compact(aws_subnet.eks[*].cidr_block)
-}
+#output "eks_subnets" {
+#  description = "List of IDs of public subnets"
+#  value       = aws_subnet.eks[*].id
+#}
+#
+#output "eks_subnet_arns" {
+#  description = "List of ARNs of private subnets"
+#  value       = aws_subnet.eks[*].arn
+#}
+#
+#output "eks_subnets_cidr_blocks" {
+#  description = "List of cidr_blocks of private subnets"
+#  value       = compact(aws_subnet.eks[*].cidr_block)
+#}
 
 ################################################################################
 # Private Subnets
@@ -224,38 +212,6 @@ output "database_subnets_cidr_blocks" {
   value       = compact(aws_subnet.database[*].cidr_block)
 }
 
-################################################################################
-# Customer Gateway
-################################################################################
-
-output "cgw_ids" {
-  description = "List of IDs of Customer Gateway"
-  value       = [for k, v in aws_customer_gateway.this : v.id]
-}
-
-output "cgw_arns" {
-  description = "List of ARNs of Customer Gateway"
-  value       = [for k, v in aws_customer_gateway.this : v.arn]
-}
-
-output "this_customer_gateway" {
-  description = "Map of Customer Gateway attributes"
-  value       = aws_customer_gateway.this
-}
-
-################################################################################
-# VPN Gateway
-################################################################################
-
-output "vgw_id" {
-  description = "The ID of the VPN Gateway"
-  value       = try(aws_vpn_gateway.this[0].id, null)
-}
-
-output "vgw_arn" {
-  description = "The ARN of the VPN Gateway"
-  value       = try(aws_vpn_gateway.this[0].arn, null)
-}
 
 ################################################################################
 # VPC Flow Log
@@ -295,22 +251,3 @@ output "name" {
   value       = var.name
 }
 
-################################################################################
-# VPN Outputs
-################################################################################
-
-output "vpn_ids" {
-  value      = [for k, v in aws_vpn_connection.vpn-connections : v.id]
-}
-
-#################################################################################
-## Network Firewall
-#################################################################################
-#output "nw_fw"{
-#  value = aws_networkfirewall_firewall.rp-firewall.id
-#}
-#
-#output "gwlb_endpoint_id" {
-#  description = "Gateway Load Balancer Endpoint ID for Network Firewall"
-#  value       = [for i in aws_networkfirewall_firewall.rp-firewall.firewall_status[0].sync_states: i.attachment[0].endpoint_id][0]
-#}

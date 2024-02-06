@@ -3,8 +3,6 @@ locals {
   len_private_subnets     = max(length(var.private_subnets), length(var.private_subnet_ipv6_prefixes))
   len_database_subnets    = max(length(var.database_subnets), length(var.database_subnet_ipv6_prefixes))
   len_alb_subnets         = max(length(var.alb_subnets), length(var.alb_subnet_ipv6_prefixes))
-  len_eks_subnets        = max(length(var.eks_subnets), length(var.eks_subnet_ipv6_prefixes))
-  len_firewall_subnets =  max(length(var.firewall_subnets), length(var.firewall_subnet_ipv6_prefixes))
   len_nat_subnets = max(length(var.nat_subnets), length(var.nat_subnet_ipv6_prefixes))
 
   max_subnet_length = max(
@@ -12,8 +10,6 @@ locals {
     local.len_public_subnets,
     local.len_database_subnets,
     local.len_alb_subnets,
-    local.len_eks_subnets,
-    local.len_firewall_subnets,
     local.len_nat_subnets
   )
 
@@ -124,13 +120,34 @@ resource "aws_subnet" "public" {
   )
 }
 
+resource "aws_route_table" "public_route_table" {
+  count = var.create_private_subnet_route_table ? 1 : 0
+
+  vpc_id = local.vpc_id
+
+  tags = {
+    "Name" = "Private-RT"
+  }
+}
+
 resource "aws_route_table_association" "public-association" {
   count = local.create_public_subnets ? local.len_public_subnets : 0
   subnet_id = element(aws_subnet.public[*].id, count.index)
   route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
+    coalescelist(aws_route_table.public_route_table[*].id),
+    var.create_public_subnet_route_table ? 1: 0,
   )
+}
+
+resource "aws_route" "public_route" {
+  count = length(var.public_routes)
+  route_table_id = element(
+    coalescelist(aws_route_table.public_route_table[*].id),
+    var.create_public_subnet_route_table ? 1: 0,
+  )
+  destination_cidr_block = var.public_routes[count.index].destination_cidr_block
+  gateway_id = aws_internet_gateway.this.id
+  vpc_endpoint_id = var.public_routes[count.index].endpoint_id
 }
 
 
@@ -220,12 +237,12 @@ resource "aws_subnet" "nat" {
   )
 }
 
-resource "aws_route_table_association" "nat-protected-association" {
+resource "aws_route_table_association" "nat-private-association" {
   count = local.create_nat_subnets ? local.len_nat_subnets : 0
   subnet_id = element(aws_subnet.nat[*].id, count.index)
   route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
+    coalescelist(aws_route_table.private_route_table[*].id),
+    var.create_private_subnet_route_table ? 1: 0,
   )
 }
 
@@ -281,7 +298,7 @@ resource "aws_route_table_association" "private-association" {
   subnet_id      = element(aws_subnet.private[*].id, count.index)
   route_table_id = element(
     coalescelist(aws_route_table.private_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
+    var.create_private_subnet_route_table ? 1: 0,
   )
 }
 
@@ -292,7 +309,7 @@ resource "aws_route" "private_route" {
     var.create_private_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = var.private_routes[count.index].destination_cidr_block
-  gateway_id = var.private_routes[count.index].gateway_id
+  gateway_id = aws_nat_gateway.ps-nat.id
   vpc_endpoint_id = var.private_routes[count.index].endpoint_id
 }
 
@@ -355,46 +372,67 @@ resource "aws_network_acl_rule" "private_outbound" {
 # Eks Subnets
 ################################################################################
 
-locals {
-  create_eks_subnets     = local.create_vpc && local.len_eks_subnets > 0
-  create_eks_route_table = local.create_eks_subnets && var.create_eks_subnet_route_table
-}
-
-resource "aws_subnet" "eks" {
-  count = local.create_eks_subnets ? local.len_eks_subnets : 0
-
-  assign_ipv6_address_on_creation                = var.enable_ipv6 && var.eks_subnet_ipv6_native ? true : var.eks_subnet_assign_ipv6_address_on_creation
-  availability_zone                              = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) > 0 ? element(var.azs, count.index) : null
-  availability_zone_id                           = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
-  cidr_block                                     = var.eks_subnet_ipv6_native ? null : element(concat(var.eks_subnets, [""]), count.index)
-  enable_dns64                                   = var.enable_ipv6 && var.eks_subnet_enable_dns64
-  enable_resource_name_dns_aaaa_record_on_launch = var.enable_ipv6 && var.eks_subnet_enable_resource_name_dns_aaaa_record_on_launch
-  enable_resource_name_dns_a_record_on_launch    = !var.eks_subnet_ipv6_native && var.eks_subnet_enable_resource_name_dns_a_record_on_launch
-  ipv6_cidr_block                                = var.enable_ipv6 && length(var.eks_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.eks_subnet_ipv6_prefixes[count.index]) : null
-  ipv6_native                                    = var.enable_ipv6 && var.eks_subnet_ipv6_native
-  private_dns_hostname_type_on_launch            = var.eks_subnet_private_dns_hostname_type_on_launch
-  vpc_id                                         = local.vpc_id
-
-  tags = merge(
-    {
-      Name = try(
-        var.eks_subnet_names[count.index],
-        format("${var.name}-${var.eks_subnet_suffix}-%s", element(var.azs, count.index), )
-      )
-    },
-    var.tags,
-    var.eks_subnet_tags,
-  )
-}
-
-resource "aws_route_table_association" "eks-association" {
-  count = local.create_eks_subnets ? local.len_eks_subnets : 0
-  subnet_id = element(aws_subnet.eks[*].id, count.index)
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-}
+#locals {
+#  create_eks_subnets     = local.create_vpc && local.len_eks_subnets > 0
+#  create_eks_route_table = local.create_eks_subnets && var.create_eks_subnet_route_table
+#}
+#
+#resource "aws_subnet" "eks" {
+#  count = local.create_eks_subnets ? local.len_eks_subnets : 0
+#
+#  assign_ipv6_address_on_creation                = var.enable_ipv6 && var.eks_subnet_ipv6_native ? true : var.eks_subnet_assign_ipv6_address_on_creation
+#  availability_zone                              = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) > 0 ? element(var.azs, count.index) : null
+#  availability_zone_id                           = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
+#  cidr_block                                     = var.eks_subnet_ipv6_native ? null : element(concat(var.eks_subnets, [""]), count.index)
+#  enable_dns64                                   = var.enable_ipv6 && var.eks_subnet_enable_dns64
+#  enable_resource_name_dns_aaaa_record_on_launch = var.enable_ipv6 && var.eks_subnet_enable_resource_name_dns_aaaa_record_on_launch
+#  enable_resource_name_dns_a_record_on_launch    = !var.eks_subnet_ipv6_native && var.eks_subnet_enable_resource_name_dns_a_record_on_launch
+#  ipv6_cidr_block                                = var.enable_ipv6 && length(var.eks_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.eks_subnet_ipv6_prefixes[count.index]) : null
+#  ipv6_native                                    = var.enable_ipv6 && var.eks_subnet_ipv6_native
+#  private_dns_hostname_type_on_launch            = var.eks_subnet_private_dns_hostname_type_on_launch
+#  vpc_id                                         = local.vpc_id
+#
+#  tags = merge(
+#    {
+#      Name = try(
+#        var.eks_subnet_names[count.index],
+#        format("${var.name}-${var.eks_subnet_suffix}-%s", element(var.azs, count.index), )
+#      )
+#    },
+#    var.tags,
+#    var.eks_subnet_tags,
+#  )
+#}
+#
+#resource "aws_route_table" "eks_route_table" {
+#  count = var.create_private_subnet_route_table ? 1 : 0
+#
+#  vpc_id = local.vpc_id
+#
+#  tags = {
+#    "Name" = "EKS-RT"
+#  }
+#}
+#
+#resource "aws_route_table_association" "eks-association" {
+#  count = local.create_eks_subnets ? local.len_eks_subnets : 0
+#  subnet_id = element(aws_subnet.eks[*].id, count.index)
+#  route_table_id = element(
+#    coalescelist(aws_route_table.eks_route_table[*].id),
+#    var.create_eks_subnet_route_table ? 1: 0,
+#  )
+#}
+#
+#resource "aws_route" "eks_route" {
+#  count = length(var.eks_routes)
+#  route_table_id = element(
+#    coalescelist(aws_route_table.eks_route_table[*].id),
+#    var.create_eks_subnet_route_table ? 1: 0,
+#  )
+#  destination_cidr_block = var.eks_routes[count.index].destination_cidr_block
+#  gateway_id = var.eks_routes[count.index].gateway_id
+#  vpc_endpoint_id = var.eks_routes[count.index].endpoint_id
+#}
 
 ################################################################################
 # ALB Subnets
@@ -433,97 +471,7 @@ resource "aws_subnet" "alb" {
   )
 }
 
-resource "aws_route_table" "protected_route_table" {
-  count = var.create_protected_route_table ? 1 : 0
 
-  vpc_id = local.vpc_id
-
-  tags = {
-    "Name" = "Protected-RT"
-  }
-}
-
-resource "aws_route_table_association" "protected-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
-  subnet_id = element(aws_subnet.alb[*].id, count.index)
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-}
-
-resource "aws_route" "protected_route" {
-  count = length(var.protected_routes)
-  route_table_id = element(
-    coalescelist(aws_route_table.protected_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
-  )
-  destination_cidr_block = var.protected_routes[count.index].destination_cidr_block
-  vpc_endpoint_id = var.protected_routes[count.index].endpoint_id
-  gateway_id = var.protected_routes[count.index].gateway_id
-}
-
-################################################################################
-# firewall Subnets
-################################################################################
-
-
-locals {
-  create_firewall_subnets     = local.create_vpc && local.len_firewall_subnets > 0
-  create_firewall_route_table = local.create_firewall_subnets && var.create_firewall_subnet_route_table
-}
-
-resource "aws_subnet" "firewall" {
-  count = local.create_firewall_subnets ? local.len_firewall_subnets : 0
-
-  assign_ipv6_address_on_creation                = var.enable_ipv6 && var.firewall_subnet_ipv6_native ? true : var.firewall_subnet_assign_ipv6_address_on_creation
-  availability_zone                              = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) > 0 ? element(var.azs, count.index) : null
-  availability_zone_id                           = length(regexall("^[a-z]{2}-", element(var.azs, count.index))) == 0 ? element(var.azs, count.index) : null
-  cidr_block                                     = var.firewall_subnet_ipv6_native ? null : element(concat(var.firewall_subnets, [""]), count.index)
-  enable_dns64                                   = var.enable_ipv6 && var.firewall_subnet_enable_dns64
-  enable_resource_name_dns_aaaa_record_on_launch = var.enable_ipv6 && var.firewall_subnet_enable_resource_name_dns_aaaa_record_on_launch
-  enable_resource_name_dns_a_record_on_launch    = !var.firewall_subnet_ipv6_native && var.firewall_subnet_enable_resource_name_dns_a_record_on_launch
-  ipv6_cidr_block                                = var.enable_ipv6 && length(var.firewall_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, var.firewall_subnet_ipv6_prefixes[count.index]) : null
-  ipv6_native                                    = var.enable_ipv6 && var.firewall_subnet_ipv6_native
-  private_dns_hostname_type_on_launch            = var.firewall_subnet_private_dns_hostname_type_on_launch
-  vpc_id                                         = local.vpc_id
-
-  tags = merge(
-    {
-      Name = try(
-        var.firewall_subnet_names[count.index],
-        format("${var.name}-${var.firewall_subnet_suffix}-%s", element(var.azs, count.index), )
-      )
-    },
-    var.tags,
-    var.firewall_subnet_tags,
-  )
-}
-
-resource "aws_route_table" "firewall_route_table" {
-  count = local.create_firewall_route_table  ? 1 : 0
-  vpc_id = local.vpc_id
-  tags = {
-    "Name" = "Firewall-RT"
-  }
-}
-
-resource "aws_route_table_association" "firewall-association" {
-  count = local.create_firewall_subnets ? local.len_firewall_subnets : 0
-
-  subnet_id = element(aws_subnet.firewall[*].id, count.index)
-  route_table_id = element(
-    coalescelist(aws_route_table.firewall_route_table[*].id),
-    var.create_firewall_subnet_route_table ? 1: 0,
-  )
-}
-
-resource "aws_route" "firewall_route" {
-  count = length(var.firewall_routes)
-  route_table_id = aws_route_table.firewall_route_table[0].id
-  destination_cidr_block = var.firewall_routes[count.index].destination_cidr_block
-  gateway_id = aws_internet_gateway.this[0].id
-}
 
 ################################################################################
 # Database Subnets
@@ -592,7 +540,7 @@ resource "aws_route_table_association" "db-association" {
   subnet_id      = element(aws_subnet.database[*].id, count.index)
   route_table_id = element(
     coalescelist(aws_route_table.db_route_table[*].id),
-    var.create_protected_route_table ? 1: 0,
+    var.create_private_subnet_route_table ? 1: 0,
   )
 }
 
@@ -667,32 +615,32 @@ resource "aws_network_acl_rule" "database_outbound" {
 
 
 
-resource "aws_route_table" "ingress_igw_route_table" {
-  count  = var.create_ingress_route_table ?  1 : 0
-  vpc_id = local.vpc_id
-  tags   = {
-    "Name" = "Ingress-IGW-RT"
-  }
-}
-
-resource "aws_route_table_association" "ingress-igw-association" {
-  count = local.create_alb_subnets ? local.len_alb_subnets : 0
-  route_table_id = element(
-    coalescelist(aws_route_table.ingress_igw_route_table[*].id),
-    var.create_alb_subnet_route_table ? 1: 0,
-  )
-  gateway_id = aws_internet_gateway.this[0].id
-}
-
-resource "aws_route" "ingress-igw-route" {
-  count = length(var.ingress_igw_routes)
-  route_table_id = element(
-    coalescelist(aws_route_table.ingress_igw_route_table[*].id),
-    var.create_ingress_route_table ? 1: 0,
-  )
-  destination_cidr_block = var.ingress_igw_routes[count.index].destination_cidr_block
-  vpc_endpoint_id = var.ingress_igw_routes[count.index].endpoint_id
-}
+#resource "aws_route_table" "ingress_igw_route_table" {
+#  count  = var.create_ingress_route_table ?  1 : 0
+#  vpc_id = local.vpc_id
+#  tags   = {
+#    "Name" = "Ingress-IGW-RT"
+#  }
+#}
+#
+#resource "aws_route_table_association" "ingress-igw-association" {
+#  count = local.create_alb_subnets ? local.len_alb_subnets : 0
+#  route_table_id = element(
+#    coalescelist(aws_route_table.ingress_igw_route_table[*].id),
+#    var.create_alb_subnet_route_table ? 1: 0,
+#  )
+#  gateway_id = aws_internet_gateway.this[0].id
+#}
+#
+#resource "aws_route" "ingress-igw-route" {
+#  count = length(var.ingress_igw_routes)
+#  route_table_id = element(
+#    coalescelist(aws_route_table.ingress_igw_route_table[*].id),
+#    var.create_ingress_route_table ? 1: 0,
+#  )
+#  destination_cidr_block = var.ingress_igw_routes[count.index].destination_cidr_block
+#  vpc_endpoint_id = var.ingress_igw_routes[count.index].endpoint_id
+#}
 
 
 ################################################################################
@@ -702,7 +650,7 @@ resource "aws_route" "ingress-igw-route" {
 resource "aws_eip" "nat_ip" {
   domain = "vpc"
   tags = {
-    Name = "central-nat-eip"
+    Name = "ps-nat-eip"
   }
 }
 
@@ -732,7 +680,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = local.vpc_id
 
   tags = {
-    "Name" = "PS-IGW-NF"
+    "Name" = "PS-IGW"
   }
 }
 
