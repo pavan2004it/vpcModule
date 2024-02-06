@@ -148,22 +148,22 @@ output "firewall_subnets_cidr_blocks" {
 }
 
 ################################################################################
-# AZDO Subnets
+# eks Subnets
 ################################################################################
 
-output "azdo_subnets" {
+output "eks_subnets" {
   description = "List of IDs of public subnets"
-  value       = aws_subnet.azdo[*].id
+  value       = aws_subnet.eks[*].id
 }
 
-output "azdo_subnet_arns" {
+output "eks_subnet_arns" {
   description = "List of ARNs of private subnets"
-  value       = aws_subnet.azdo[*].arn
+  value       = aws_subnet.eks[*].arn
 }
 
-output "azdo_subnets_cidr_blocks" {
+output "eks_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
-  value       = compact(aws_subnet.azdo[*].cidr_block)
+  value       = compact(aws_subnet.eks[*].cidr_block)
 }
 
 ################################################################################
