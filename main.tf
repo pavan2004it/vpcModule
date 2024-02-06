@@ -146,7 +146,7 @@ resource "aws_route" "public_route" {
     var.create_public_subnet_route_table ? 1: 0,
   )
   destination_cidr_block = var.public_routes[count.index].destination_cidr_block
-  gateway_id = aws_internet_gateway.this.id
+  gateway_id = aws_internet_gateway.this[0].id
   vpc_endpoint_id = var.public_routes[count.index].endpoint_id
 }
 
@@ -544,15 +544,6 @@ resource "aws_route_table_association" "db-association" {
   )
 }
 
-resource "aws_route" "db_route" {
-  count = length(var.db_routes)
-  route_table_id = element(
-    coalescelist(aws_route_table.db_route_table[*].id),
-    var.create_database_subnet_route_table ? 1: 0,
-  )
-  destination_cidr_block = var.db_routes[count.index].destination_cidr_block
-  vpc_endpoint_id = var.db_routes[count.index].endpoint_id
-}
 
 ################################################################################
 # Database Network ACLs
@@ -663,11 +654,6 @@ resource "aws_nat_gateway" "ps-nat" {
   }
 }
 
-resource "aws_route" "nat_route" {
-  route_table_id = aws_route_table.private_route_table[0].id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.ps-nat.id
-}
 
 
 ################################################################################
