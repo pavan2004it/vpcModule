@@ -126,7 +126,7 @@ resource "aws_route_table" "public_route_table" {
   vpc_id = local.vpc_id
 
   tags = {
-    "Name" = "Private-RT"
+    "Name" = "Public-RT"
   }
 }
 
@@ -241,7 +241,7 @@ resource "aws_route_table_association" "nat-private-association" {
   count = local.create_nat_subnets ? local.len_nat_subnets : 0
   subnet_id = element(aws_subnet.nat[*].id, count.index)
   route_table_id = element(
-    coalescelist(aws_route_table.private_route_table[*].id),
+    coalescelist(aws_route_table.public_route_table[*].id),
     var.create_private_subnet_route_table ? 1: 0,
   )
 }
