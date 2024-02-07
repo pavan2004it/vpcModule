@@ -114,6 +114,9 @@ output "public_subnets_cidr_blocks" {
   value       = compact(aws_subnet.public[*].cidr_block)
 }
 
+output "public_subnet_ids" {
+  value = aws_subnet.public[*].id
+}
 
 ################################################################################
 # ALB Subnets
@@ -171,6 +174,10 @@ output "private_subnet_arns" {
 output "private_subnets_cidr_blocks" {
   description = "List of cidr_blocks of private subnets"
   value       = compact(aws_subnet.private[*].cidr_block)
+}
+
+output "private_subnet_ids" {
+  value = aws_subnet.private[*].id
 }
 
 ################################################################################
