@@ -942,14 +942,6 @@ variable "public_routes" {
   }))
 }
 
-variable "db_routes" {
-  type = list(object({
-    destination_cidr_block = string
-    gateway_id = optional(string)
-    endpoint_id = optional(string)
-  }))
-}
-
 
 ################################################################################
 # Internet Gateway
