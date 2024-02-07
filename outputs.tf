@@ -263,9 +263,9 @@ output "name" {
 ################################################################################
 
 output "nat-id" {
-  value = aws_nat_gateway.ps-nat.id
+  value = aws_nat_gateway.ps-nat[*].id
 }
 
 output "igw-id" {
-  value = aws_internet_gateway.this.id
+  value = aws_internet_gateway.this[*].id
 }
