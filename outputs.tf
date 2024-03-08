@@ -219,6 +219,9 @@ output "database_subnets_cidr_blocks" {
   value       = compact(aws_subnet.database[*].cidr_block)
 }
 
+output "database_subnet_ids" {
+  value = aws_subnet.database[*].id
+}
 
 ################################################################################
 # VPC Flow Log
