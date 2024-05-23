@@ -281,6 +281,9 @@ resource "aws_subnet" "private" {
     var.private_subnet_tags,
     lookup(var.private_subnet_tags_per_az, element(var.azs, count.index), {})
   )
+  timeouts {
+    delete = "2m"
+  }
 }
 
 resource "aws_route_table" "private_route_table" {
